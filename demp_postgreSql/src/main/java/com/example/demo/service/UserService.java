@@ -85,7 +85,7 @@ public class UserService {
 			user.setCreationDate(now.format(formatter));
 			user.setModificationDate(now.format(formatter));
 			user.setMemo(map.get("memo"));
-			user.setRoles("ROLE_employee");
+			user.setRoles("MANAGER");
 
 			user = userRepository.saveAndFlush(user);
 			return user;
