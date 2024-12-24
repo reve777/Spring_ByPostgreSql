@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<style>
+	.button-container {
+		display: flex;
+		justify-content: flex-end;
+		gap: 20px;
+		margin-top: 20px;
+	}
+
+	#myTable,
+	#myTable2 {
+		table-layout: auto;
+		width: 100%;
+	}
+
+	#myTable th,
+	#myTable td,
+	#myTable2 th,
+	#myTable2 td {
+		white-space: nowrap;
+		padding: 8px;
+	}
+
+	#myTable th,
+	#myTable2 th {
+		text-align: left;
+	}
+</style>
+
+<head>
+	<meta charset="UTF-8">
+	<title>User</title>
+	<th:block th:include="./include/header :: header"></th:block>
+
+	<script>
+		$(document).ready(function () {
+
+
+
+			$("#add").on("click", function () {
+				var account = $("#account").val().trim();
+				var password = $("#password").val().trim();
+
+				if (!account) {
+					alert("帳號不能為空！");
+					return;
+				}
+				if (!/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d!@#$%^&*()_+={}\[\]:;"'<>,.?/\\|-]{3,10}$/.test(account)) {
+					alert("帳號必須為3到10字元之間，且至少包含一個小寫英文、一個大寫英文，並可以包含英文字母、數字和部分特殊符號（如 !#$%_+?-）！");
+					return;
+				}
+
+				if (!password) {
+					alert("密碼不能為空！");
+					return;
+				}
+				if (!/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d!@#$%^&*()_+={}\[\]:;"'<>,.?/\\|-]{3,10}$/.test(account)) {
+					alert("密碼必須為3到10字元之間，且至少包含一個小寫英文、一個大寫英文，並可以包含英文字母、數字和部分特殊符號（如 !#$%_+?-）！");
+					return;
+				}
+				var jsonObj = $('#myform').serializeObject();
+				var jsonStr = JSON.stringify(jsonObj);
+				console.log("add", jsonStr);
+				$.ajax({
+					url: "/demo/user/add",
+					type: "POST",
+					contentType: "application/json;charset=utf-8",
+					data: jsonStr,
+					cache: false,
+					processData: false,
+					success: function (resp) {
+						console.log("resp", resp);
+						console.log("json", JSON.stringify(resp));
+						initPageSetup();
+					},
+					error: function (xhr, status, error) {
+						const errorMessage = xhr.responseJSON?.message || error || "未知錯誤";
+						alert("新增失敗：" + errorMessage);
+						console.error("新增失敗", xhr, status, error);
+					}
+				});
+			});
+
+
+
+			$("#upt").on("click", function () {
+				var account = $("#account").val().trim();
+				var password = $("#password").val().trim();
+
+				if (!account) {
+					alert("帳號不能為空！");
+					return;
+					}
+				if (!/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d!@#$%^&*()_+={}\[\]:;"'<>,.?/\\|-]{3,10}$/.test(account)) {
+					alert("帳號必須為3到10字元之間，且至少包含一個小寫英文、一個大寫英文，並可以包含英文字母、數字和部分特殊符號（如 !#$%_+?-）！");
+					return;
+				}
+
+				if (!password) {
+					alert("密碼不能為空！");
+					return;
+				}
+				if (!/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d!@#$%^&*()_+={}\[\]:;"'<>,.?/\\|-]{3,10}$/.test(account)) {
+					alert("密碼必須為3到10字元之間，且至少包含一個小寫英文、一個大寫英文，並可以包含英文字母、數字和部分特殊符號（如 !#$%_+?-）！");
+					return;
+				}
+				var jsonObj = $('#myform').serializeObject();
+				var jsonStr = JSON.stringify(jsonObj);
+				console.log(jsonStr);
+				$.ajax({
+					url: "/demo/user/update/" + jsonObj.id,
+					type: "PUT",
+					contentType: "application/json;charset=utf-8",
+					data: jsonStr,
+					cache: false,
+					processData: false,
+					success: function (resp) {
+						console.log("resp", resp);
+						console.log("json", JSON.stringify(resp));
+						initPageSetup();
+					},
+					error: function (xhr, status, error) {
+						const errorMessage = xhr.responseJSON?.message || error || "未知錯誤";
+						alert("修改失敗：" + errorMessage);
+						console.error("新增失敗", xhr, status, error);
+					}
+				});
+			});
+
+			$("#del").on("click", function () {
+				var id = $('#myform').find("#id").val();
+				console.log("id", id);
+				$.ajax({
+					url: "/demo/user/delete/" + id,
+					type: "DELETE",
+					success: function (resp) {
+						console.log(JSON.stringify(resp));
+						initPageSetup();
+					},
+					error: function (req, stat) {
+						alert("無法刪除");
+					}
+				});
+			});
+
+			$("#myTable").on("click", "tr", function () {
+				var id = $(this).find('td').eq(0).text().trim();
+				console.log("id====", id);
+				var url = "/demo/user/" + id;
+				$.get(url, function (data, status) {
+					console.log("test", JSON.stringify(data));
+					$('#add').attr('disabled', true);
+					$('#upt').attr('disabled', false);
+					$('#del').attr('disabled', false);
+					$('#myform').trigger('reset');
+					console.log("data.id===", data.id);
+					$("#myform #id").val(data.id);
+					$("#myform").find("#account").val(data.userName);
+					$("#myform").find("#password").val();
+					$("#myform").find("#name").val(data.name);
+					$("#myform").find("#birthday").val(data.birthday);
+					$("#myform").find("#department").val(data.department);
+					$("#myform").find("#groups").val(data.user_groups);
+					$("#myform").find("#status").val(data.status).prop('selected', true);
+					$("#myform").find("#effectiveDate").val(data.effectiveDate);
+					$("#myform").find("#deactivationDate").val(data.deactivationDate);
+					$("#myform").find("#joiningDate").val(data.joiningDate);
+					$("#myform").find("#creationDate").val(data.creationDate);
+					$("#myform").find("#modificationDate").val(data.modificationDate);
+					$("#myform").find("#memo").val(data.memo);
+
+				});
+			});
+
+			$("#rst").on("click", function () {
+				initPageSetup();
+			});
+
+			// 網頁載入完成後所執行的第一個程式
+			initPageSetup();
+		});
+
+		function initPageSetup() {
+			$('#add').attr('disabled', false);
+			$('#upt').attr('disabled', true);
+			$('#del').attr('disabled', true);
+			$('#myform').trigger('reset'); // 表單內容清空（重置）
+			table_list();
+			table_list2();
+		}
+
+		function table_list() {
+			var searchAccount = $("#searchAccount").val();
+			var searchDepartment = $("#searchDepartment").val();
+			var searchGroups = $("#searchGroups").val();
+			var searchStatus = $("#searchStatus").val();
+			var searchJoiningDate = $("#searchJoiningDate").val();
+			console.log("A", searchAccount);
+			var url = "/demo/user/?searchAccount=" + searchAccount + "&searchDepartment=" + searchDepartment + "&searchGroups=" + searchGroups + "&searchStatus=" + searchStatus + "&searchJoiningDate=" + searchJoiningDate;
+			$.get(url, function (datas, status) {
+				console.log(datas);
+				console.log(status);
+				// 清除 tbody 的內容
+				$("#myTable tbody > tr").remove();
+				// 加入資料
+				$.each(datas, function (i, item) {
+					var html = "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td><td>{9}</td><td>{10}</td><td>{11}</td><td>{12}</td><td>{13}</td></tr>";
+					$("#myTable").append(String.format(html, item.id,
+						item.userName,
+						item.password,
+						item.name,
+						item.birthday,
+						item.department,
+						item.user_groups,
+						item.status,
+						item.effectiveDate,
+						item.deactivationDate,
+						item.joiningDate,
+						item.creationDate,
+						item.modificationDate,
+						item.memo));
+					console.log(String.format(html, item.id,
+						item.userName,
+						item.password,
+						item.name,
+						item.birthday,
+						item.department,
+						item.user_groups,
+						item.status,
+						item.effectiveDate,
+						item.deactivationDate,
+						item.joiningDate,
+						item.creationDate,
+						item.modificationDate,
+						item.memo))
+					console.log("A", String.format(html, item.id,
+						item.userName,
+						item.password,
+						item.name,
+						item.birthday,
+						item.department,
+						item.user_groups,
+						item.status,
+						item.effectiveDate,
+						item.deactivationDate,
+						item.joiningDate,
+						item.creationDate,
+						item.modificationDate,
+						item.memo));
+				});
+			});
+		}
+
+		function table_list2() {
+			console.log("A", searchAccount);
+			var url = "/demo/user/getDelete";
+			$.get(url, function (datas, status) {
+				console.log(datas);
+				console.log(status);
+				// 清除 tbody 的內容
+				$("#myTable2 tbody > tr").remove();
+				// 加入資料
+				$.each(datas, function (i, item) {
+					var html = "<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td><td>{9}</td><td>{10}</td><td>{11}</td><td>{12}</td><td>{13}</td></tr>";
+					$("#myTable2").append(String.format(html, item.id,
+						item.userName,
+						item.password,
+						item.name,
+						item.birthday,
+						item.department,
+						item.user_groups,
+						item.status,
+						item.effectiveDate,
+						item.deactivationDate,
+						item.joiningDate,
+						item.creationDate,
+						item.modificationDate,
+						item.memo));
+				});
+			});
+		}
+
+	</script>
+</head>
+
+<body>
+
+
+	<div class="container">
+		<h1>User(CUD)</h1>
+		<form id="myform" class="form-horizontal">
+			<div class="form-group">
+				<label class="col-sm-2 control-label">ID</label>
+				<div class="col-sm-5">
+					<input id="id" name="id" type="number" value="0" readonly class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">帳號</label>
+				<div class="col-sm-10">
+					<input id="account" name="account" type="text" value=""
+						placeholder="帳號必須為3到10字元之間，至少包含一個大、一個小寫英文，並只能包含英文或數字或指定特殊符號如:!#$%_+?-！" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">密碼</label>
+				<div class="col-sm-10">
+					<input id="password" name="password" type="text" value=""
+						placeholder="密碼必須為3到10字元之間，至少包含一個大、一個小寫英文，並只能包含英文或數字或指定特殊符號如:!#$%_+?-！" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">姓名</label>
+				<div class="col-sm-10">
+					<input id="name" name="name" type="text" value="" placeholder="請輸入" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">生日</label>
+				<div class="col-sm-10">
+					<input id="birthday" name="birthday" type="date" value="" placeholder="請輸入" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">部門</label>
+				<div class="col-sm-10">
+					<input id="department" name="department" type="text" value="" placeholder="請輸入"
+						class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">組別</label>
+				<div class="col-sm-10">
+					<input id="groups" name="groups" type="text" value="" placeholder="請輸入" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">狀態</label>
+				<div class="col-sm-10">
+					<select id="status" name="status" class="form-control">
+						<option value="啟用">啟用</option>
+						<option value="停用">停用</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">生效日期</label>
+				<div class="col-sm-10">
+					<input id="effectiveDate" name="effectiveDate" type="date" value="" placeholder="請輸入"
+						class="form-control" />
+				</div>
+			</div>
+			<!--			<div class="form-group">
+				<label class="col-sm-2 control-label">停用日期</label>
+				<div class="col-sm-10"> -->
+			<input id="deactivationDate" name="deactivationDate" type="hidden" readonly value=""
+				placeholder="根據停用當時自動輸入" class="form-control" />
+			<!--</div>
+			</div>-->
+			<div class="form-group">
+				<label class="col-sm-2 control-label">入職日期</label>
+				<div class="col-sm-10">
+					<input id="joiningDate" name="joiningDate" type="date" value="" placeholder="請輸入"
+						class="form-control" />
+				</div>
+			</div>
+			<!--			 <div class="form-group">
+				<label class="col-sm-2 control-label">建立日期</label>
+				<div class="col-sm-10">-->
+			<input id="creationDate" name="creationDate" type="hidden" value="" readonly placeholder="自動輸入"
+				class="form-control" />
+			<!--				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">修改日期</label>
+				<div class="col-sm-10">-->
+			<input id="modificationDate" name="modificationDate" type="hidden" value="" readonly placeholder="自動輸入"
+				class="form-control" />
+			<!--				</div>-->
+			<!--			</div>-->
+			<div class="form-group">
+				<label class="col-sm-2 control-label">Memo</label>
+				<div class="col-sm-10">
+					<input id="memo" name="memo" type="text" value="" placeholder="請輸入" class="form-control" />
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-offset-2 col-sm-10">
+					<button id="add" type="button" class="btn btn-success">新增</button>
+					<button id="upt" type="button" class="btn btn-info">修改</button>
+					<button id="del" type="button" class="btn btn-danger">刪除</button>
+					<button id="rst" type="button" class="btn btn-warning">重置</button>
+				</div>
+			</div>
+		</form>
+		<p />
+
+		<!-- Search Inputs -->
+		<div class="form-group">
+			<label for="searchAccount">Search by Account 帳號:(比對全符合)</label>
+			<input type="text" id="searchAccount" class="form-control" placeholder="Enter account"
+				onkeyup="table_list()" />
+		</div>
+		<div class="form-group">
+			<label for="searchDepartment">Search by Department 部門:</label>
+			<input type="text" id="searchDepartment" class="form-control" placeholder="Enter password"
+				onkeyup="table_list()" />
+		</div>
+		<div class="form-group">
+			<label for="searchGroups">Search by Groups 組別:</label>
+			<input type="text" id="searchGroups" class="form-control" placeholder="Enter name" onkeyup="table_list()" />
+		</div>
+		<div class="form-group">
+			<label for="searchStatus">Search by Status 狀態:</label>
+			<input type="text" id="searchStatus" class="form-control" placeholder="Enter birthday"
+				onkeyup="table_list()" />
+		</div>
+		<div class="form-group">
+			<label for="searchJoiningDate">Search by JoiningDate 入職時間 xxxx-xx-xx:</label>
+			<input type="text" id="searchJoiningDate" class="form-control" placeholder="Enter birthday"
+				onkeyup="table_list()" />
+		</div>
+
+
+		<h1>用戶資料 (點擊上方後CRUD)</h1>
+		<table id="myTable" border="1" class="table table-striped table-responsive-md">
+			<thead>
+				<tr>
+					<th>id</th>
+					<th>帳號</th>
+					<th>密碼</th>
+					<th>姓名</th>
+					<th>生日</th>
+					<th>部門</th>
+					<th>組別</th>
+					<th>狀態</th>
+					<th>(帳號)生效日期</th>
+					<th>(帳號) 停用日期</th>
+					<th>入職日期</th>
+					<th>建立日期</th>
+					<th>修改日期</th>
+					<th>Memo</th>
+				</tr>
+			<tbody>
+
+			</tbody>
+			</thead>
+		</table>
+		<h1>刪除用戶資料</h1>
+		<table id="myTable2" border="1" class="table table-striped table-responsive-md">
+			<thead>
+				<tr>
+					<th>id</th>
+					<th>帳號</th>
+					<th>密碼</th>
+					<th>姓名</th>
+					<th>生日</th>
+					<th>部門</th>
+					<th>組別</th>
+					<th>狀態</th>
+					<th>(帳號)生效日期</th>
+					<th>(帳號) 停用日期</th>
+					<th>入職日期</th>
+					<th>建立日期</th>
+					<th>修改日期</th>
+					<th>Memo</th>
+				</tr>
+			<tbody>
+
+			</tbody>
+			</thead>
+		</table>
+
+	</div>
+
+	<p />
+	<p />
+	<p />
+	<th:block th:include="./include/footer :: footer"></th:block>
+</body>
+
+</html>
